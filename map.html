@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <!--スタイル-->
+  <style type="text/css">
+         #result{
+         position:absolute;
+          left:800px;
+          top:50px;
+         }
+        html {
+            background-image: url("images/bg.jpg");
+            height: 100%;
+        }
+        body {
+            height: 100%;
+            margin: 0px;
+            padding: 0px
+        }
+        #map {
+            position: relative;
+            top:20px;
+            left:20px;
+            height:500px;
+            width:700px;
+        }
+        table{
+        position:relative;
+        left:17px;
+        top:20px;
+        }
+  </style>
+  <!--まっぷのscript-->
+  <script src="http://maps.google.com/maps/api/js?key=AIzaSyC5CfknQZrTgzCsj9DWNcR-hJUF_MbWPYU&language=ja" type="text/javascript" charset="UTF-8"></script>
+</head>
+<body onload="init()" onload="run();">
+  <!--マップ設置-->
+  <div id="map" style="height:540px"></div>
+  <!--緯度経度-->
+  <table border="1" cellspacing="0">
+    <tr>
+      <th>lat</th>
+      <td id="show_lat"></td>
+    </tr>
+    <tr>
+      <th>lng</th>
+      <td id="show_lng"></td>
+    </tr>
+  </table>
+  <script type="text/javascript">
+    function init() {
+
+      
+      var latlng = new google.maps.LatLng(39, 138);
+      var opts = {
+        zoom: 6,
+        mapTypeId: google.maps.MapTypeId.ROADMAP, //マップタイプの指定
+        center: latlng
+      };
+      map = new google.maps.Map(document.getElementById("map"), opts);
+      google.maps.event.addListener(map, 'click', mylistener);//マップクリック==イベント
+    }
+    var lng=135;
+    var lat;
+    
+    <!--クリック時-->
+    function mylistener(event) {　//クリックイベント
+    /*緯度経度*/
+    lat=event.latLng.lat();//
+      document.getElementById("show_lat").innerHTML = lat;
+    lng=event.latLng.lng();
+      document.getElementById("show_lng").innerHTML = lng;
+    main(lng);<!--時計の回転-->
+    ajaxdao();<!--ajaxによる天気の更新-->
+    }
+    <!--Ajax-->
+    var data=null;
+    var httpObj;
+    function ajaxdao(){
+        httpObj = new XMLHttpRequest();
+        httpObj.open("GET", "http://api.openweathermap.org/data/2.5/find?lat="+lat+"&lon="+lng+"&cnt=1&appid=dc1af7fc24b9be418546e5422909f4d4" , true);
+        httpObj.onload =function (){
+        data = JSON.parse(this.responseText);//json変換
+        /*コンソール*/
+        console.log(data);
+        console.log("XHR送信成功!!");
+        /*天気関数*/
+        showWeather(data);
+        }
+        httpObj.send(null);
+    }
+    <!--天気-->
+    function showWeather(data) {
+    var tag = "";
+    var tmp1;
+    var tmp2;
+    tmp1=Math.floor(data.list[0].main.temp_max-273.15);
+    tmp2=Math.floor(data.list[0].main.temp_min-273.15);
+    
+    tag+="<table>";
+    tag+="<tr><th><big><big><big><big><big><big>";
+    tag+= data.list[0].name;
+    tag+="</big></big></big></big></big></big></th></tr>";
+    tag+="<tr><td><big><big><big>";
+    tag+= data.list[0].weather[0].main;
+    tag+="</big></big></big></td></tr>";
+    tag+="<tr><td>";
+    tag+="MAX ";
+    tag+=tmp1;
+    tag+=" / MIN  "
+    tag+=tmp2;
+    tag+="</td></tr>";
+    tag+="</table>";
+    //html埋め込み
+   document.getElementById("result").innerHTML = tag;
+
+   if(data.list[0].weather[0].main=='Rain'||data.list[0].weather[0].main=='Drizzle'||data.list[0].weather[0].main=='Mist'){
+   document.body.style.backgroundImage = 'url(images/rainy.jpg)';}
+   if(data.list[0].weather[0].main=='Clear'){
+    document.body.style.backgroundImage = 'url(images/sunny.jpg)';}
+    if(data.list[0].weather[0].main=='Clouds'){
+    document.body.style.backgroundImage = 'url(images/clouds.jpg)';}
+    }
+
+    function main() {
+    }
+    main();
+  </script>
+  <div id="result"><h1>Please click on any coordinates on the map</h1></div>
+</body>
+</html>
